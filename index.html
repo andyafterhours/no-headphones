@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>No Headphones</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Source+Code+Pro:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+  :root{
+    --bg:#ffffff;
+    --text:#111111;
+    --muted:#767676;
+    --blue:#1155CC;
+    --red:#D93025;
+    --hairline:#e6e6e6;
+    --serif:'Young Serif', serif;
+    --mono:'Source Code Pro', monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--mono);
+    font-weight:400;
+    min-height:100vh;
+  }
+  a{color:inherit;}
+
+  header.site{
+    display:flex; align-items:baseline; justify-content:space-between;
+    padding:24px 40px;
+  }
+  header.site .brand{font-family:var(--serif); font-size:20px; font-weight:400;}
+  nav.tabs{display:flex; gap:24px;}
+  nav.tabs button{
+    font-family:var(--serif); font-size:15px; font-weight:400;
+    background:none; border:none; cursor:pointer; color:var(--muted);
+    padding:4px 0;
+  }
+  nav.tabs button.active{color:var(--text);}
+
+  main{max-width:1180px; margin:0 auto; padding:10px 40px 80px;}
+
+  h2.page-title{font-family:var(--serif); font-size:24px; font-weight:400; margin:0 0 22px;}
+
+  /* ---------- MAP VIEW ---------- */
+  .map-wrap{display:grid; grid-template-columns:1fr 280px; gap:36px; align-items:start;}
+  .map-frame{height:560px; position:relative;}
+  #leafletMap{width:100%; height:100%;}
+
+  .side-list-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;}
+  .sort-select{font-family:var(--mono); font-size:12px; color:var(--muted); border:none; background:transparent; cursor:pointer;}
+  .sort-select:focus{outline:none;}
+  .side-item{padding:12px 0; cursor:pointer;}
+  .side-item .phrase-text{color:var(--blue); font-size:15px;}
+  .side-item:hover .phrase-text{color:var(--red);}
+  .side-item .meta{display:block; font-size:12px; color:var(--muted); margin-top:4px;}
+
+  .leaflet-popup-content-wrapper{border-radius:2px; box-shadow:0 1px 4px rgba(0,0,0,0.2);}
+  .leaflet-popup-content{font-family:var(--mono); font-size:13px; margin:10px 12px; color:var(--text);}
+  .leaflet-popup-content .loc{display:block; font-size:11px; color:var(--muted); margin-top:6px;}
+  .leaflet-popup-content a.readlink{display:inline-block; margin-top:8px; font-size:12px; color:var(--blue); text-decoration:none;}
+  .leaflet-popup-content a.readlink:hover{color:var(--red);}
+
+  /* ---------- STORY VIEW ---------- */
+  .story-wrap{display:grid; grid-template-columns:220px 1fr 240px; gap:36px; align-items:start;}
+
+  .story-list-col{max-height:600px; display:flex; flex-direction:column;}
+  .story-list-scroll{overflow-y:auto; flex:1; max-height:180px;}
+  .story-card{padding:10px 0; cursor:pointer; font-family:var(--serif); font-size:15px; color:var(--muted);}
+  .story-card.active{color:var(--text);}
+
+  .story-page{min-height:420px;}
+  .story-nav{display:flex; justify-content:space-between; align-items:center; margin-bottom:26px;}
+  .story-nav button{font-family:var(--serif); font-size:14px; background:none; border:none; cursor:pointer; color:var(--blue); padding:0;}
+  .story-nav button:hover:not(:disabled){color:var(--red);}
+  .story-nav button:disabled{opacity:0.3; cursor:default; color:var(--muted);}
+  .story-nav .counter{font-family:var(--mono); font-size:12px; color:var(--muted);}
+
+  .story-page h3{font-family:var(--serif); font-size:26px; font-weight:400; margin:0 0 22px;}
+  .story-page p{line-height:1.75; font-size:16px; margin:0 0 18px; font-weight:300;}
+  .phrase{color:var(--blue); text-decoration:underline; cursor:pointer;}
+  .phrase:hover, .phrase.pulse{color:var(--red);}
+
+  .mini-map-box{position:sticky; top:20px;}
+  .mini-map-box h4{font-family:var(--mono); font-size:12px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.04em; margin:0 0 12px;}
+  .mini-map{height:220px; position:relative;}
+  #miniLeaflet{width:100%; height:100%;}
+  .mini-hint{font-family:var(--mono); font-size:12px; color:var(--muted); margin-top:12px; line-height:1.5;}
+
+  .about-page{max-width:600px;}
+  .about-page p{line-height:1.75; font-size:16px; margin:0 0 18px; font-weight:300;}
+
+  @media (max-width:900px){
+    .map-wrap, .story-wrap{grid-template-columns:1fr;}
+    .side-list{padding-top:20px; margin-top:20px;}
+    .mini-map-box{position:static;}
+  }
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="brand">No Headphones</div>
+  <nav class="tabs" id="mainNav">
+    <button data-view="map" class="active">Map</button>
+    <button data-view="stories">Stories</button>
+    <button data-view="about">About</button>
+  </nav>
+</header>
+
+<main>
+  <h2 class="page-title" id="pageTitle">Map</h2>
+  <div id="viewport"></div>
+</main>
+
+<script>
+/* ---------------- DATA ----------------
+   Real lat/lng. `region` is a light tag so a future "everywhere" filter
+   is just: phrases.filter(p => region === 'all' || p.region === region). */
+
+const phrases = [
+  { id:'p1', text:"I told him, not on my lunch break", lat:40.7295, lng:-73.9965, loc:"Diner counter, W 4th St", date:"2024-03-02", storyId:'s1', region:'nyc' },
+  { id:'p2', text:"we don't have to decide tonight", lat:40.7359, lng:-74.0036, loc:"Bus stop, 14th & 8th", date:"2024-03-02", storyId:'s1', region:'nyc' },
+  { id:'p3', text:"that dog again", lat:40.7712, lng:-73.9740, loc:"Central Park, north path", date:"2024-04-11", storyId:'s2', region:'nyc' },
+  { id:'p4', text:"you can't return a haircut", lat:40.7223, lng:-73.9878, loc:"Laundromat, Ludlow St", date:"2024-04-19", storyId:'s2', region:'nyc' },
+  { id:'p5', text:"it's not a metaphor, it's just rain", lat:40.7061, lng:-73.9969, loc:"Under the Manhattan Bridge", date:"2024-05-30", storyId:'s3', region:'nyc' },
+  { id:'p6', text:"last one out locks it", lat:40.7484, lng:-73.9857, loc:"Corner store, closing time", date:"2024-05-30", storyId:'s3', region:'nyc' },
+  { id:'p7', text:"I already apologized to the plant", lat:40.7411, lng:-73.9897, loc:"Stoop, W 22nd St", date:"2024-06-14", storyId:'s4', region:'nyc' },
+  { id:'p8', text:"the light's been red for a while now", lat:40.7527, lng:-73.9772, loc:"Crosswalk, 42nd & 2nd", date:"2024-07-02", storyId:'s5', region:'nyc' },
+  { id:'p9', text:"it only floods on Tuesdays", lat:40.7180, lng:-73.9584, loc:"Sidewalk, Williamsburg", date:"2024-07-19", storyId:'s6', region:'nyc' },
+];
+
+const stories = [
+  { id:'s1', title:"Lunch Break", paragraphs:[
+    [ "Mara had rehearsed the sentence on the walk over, and it still came out wrong. ", {phrase:'p1'}, ", she said, sliding onto the stool like the counter itself might argue with her." ],
+    [ "He didn't answer right away. Outside, the bus hissed to a stop and someone she'd never see again leaned toward a friend and said ", {phrase:'p2'}, ", and somehow that was the sentence that undid her, not his silence." ],
+    [ "She paid for both coffees. It felt like the only decision she could still make cleanly." ]
+  ]},
+  { id:'s2', title:"Return Policy", paragraphs:[
+    [ "The dog showed up at the same bend in the path every Thursday, and every Thursday someone muttered ", {phrase:'p3'}, " like it was a grievance instead of a small, reliable joy." ],
+    [ "Priya thought about that on Friday, standing in the laundromat's fluorescent hum, listening to a stranger argue with no one in particular: ", {phrase:'p4'}, ". She almost laughed. She wanted to say the same thing about a lot of things that week." ]
+  ]},
+  { id:'s3', title:"Closing Time", paragraphs:[
+    [ "Under the bridge, someone was explaining the weather to someone else with more patience than it deserved. ", {phrase:'p5'}, ", he said, and she believed him, mostly because she wanted to." ],
+    [ "By the time she reached the corner store the lights were dimming and the clerk was already calling out, ", {phrase:'p6'}, " — and she stood there a second longer than she needed to, just to be the last one let out into the wet street." ]
+  ]},
+  { id:'s4', title:"Stoop Talk", paragraphs:[
+    [ "Someone was crouched by a fern on the stoop next door, talking to it like it owed her money. ", {phrase:'p7'}, ", she said, and stood up like the matter was closed." ]
+  ]},
+  { id:'s5', title:"Second Avenue", paragraphs:[
+    [ "The crosswalk counted down and reset twice before anyone moved. ", {phrase:'p8'}, ", a man finally said, to no one, and everyone crossed at once, like they'd been waiting for permission." ]
+  ]},
+  { id:'s6', title:"Low Ground", paragraphs:[
+    [ "The super stood ankle-deep at the curb, unbothered. ", {phrase:'p9'}, ", he said, like it was a scheduled event rather than a flaw in the block." ]
+  ]}
+];
+
+/* ---------------- STATE ---------------- */
+let currentView = 'map';
+let selectedStoryId = stories[0].id;
+let bigMap = null, miniMap = null;
+
+const viewport = document.getElementById('viewport');
+const pageTitle = document.getElementById('pageTitle');
+const navButtons = document.querySelectorAll('#mainNav button');
+navButtons.forEach(b=>b.addEventListener('click', ()=>{
+  currentView = b.dataset.view;
+  navButtons.forEach(x=>x.classList.toggle('active', x===b));
+  render();
+}));
+
+function pinDivIcon(faint=false){
+  const color = faint ? '#cfcfcf' : '#1155CC';
+  return L.divIcon({
+    className:'',
+    html:`<svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="5" fill="${color}" stroke="#fff" stroke-width="1.5"/></svg>`,
+    iconSize:[14,14], iconAnchor:[7,7]
+  });
+}
+
+/* ---------------- RENDER: MAP VIEW ---------------- */
+let phraseSort = 'date-desc';
+
+function sortedPhrases(){
+  const list = [...phrases];
+  if(phraseSort === 'date-desc') list.sort((a,b)=> new Date(b.date) - new Date(a.date));
+  else if(phraseSort === 'date-asc') list.sort((a,b)=> new Date(a.date) - new Date(b.date));
+  else if(phraseSort === 'alpha') list.sort((a,b)=> a.text.localeCompare(b.text));
+  return list;
+}
+
+function renderMapView(){
+  pageTitle.textContent = 'Map';
+  viewport.innerHTML = `
+    <div class="map-wrap">
+      <div class="map-frame"><div id="leafletMap"></div></div>
+      <div class="side-list">
+        <div class="side-list-head">
+          <select class="sort-select" id="sortSelect">
+            <option value="date-desc" ${phraseSort==='date-desc'?'selected':''}>Newest first</option>
+            <option value="date-asc" ${phraseSort==='date-asc'?'selected':''}>Oldest first</option>
+            <option value="alpha" ${phraseSort==='alpha'?'selected':''}>A–Z</option>
+          </select>
+        </div>
+        ${sortedPhrases().map(p=>`
+          <div class="side-item" data-id="${p.id}">
+            <span class="phrase-text">${p.text}</span>
+            <span class="meta">${p.loc} · ${p.date}</span>
+          </div>`).join('')}
+      </div>
+    </div>`;
+
+  document.getElementById('sortSelect').addEventListener('change', (e)=>{
+    phraseSort = e.target.value;
+    renderMapView();
+  });
+
+  if(bigMap){ bigMap.remove(); bigMap=null; }
+  bigMap = L.map('leafletMap', { scrollWheelZoom:true }).setView([40.735,-73.995], 12.5);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution:'&copy; OpenStreetMap contributors', maxZoom:19
+  }).addTo(bigMap);
+  setTimeout(()=> bigMap.invalidateSize(), 150);
+
+  const markers = {};
+  phrases.forEach(p=>{
+    const m = L.marker([p.lat,p.lng], {icon:pinDivIcon()}).addTo(bigMap);
+    m.bindTooltip(p.text, {direction:'top', offset:[0,-8]});
+    m.bindPopup(`${p.text}<span class="loc">${p.loc} — ${p.date}</span><br><a class="readlink" href="#" data-id="${p.id}">Read the story →</a>`);
+    m.on('popupopen', ()=>{
+      document.querySelector(`.leaflet-popup-content a[data-id="${p.id}"]`)
+        ?.addEventListener('click', (e)=>{ e.preventDefault(); goToStory(p.storyId, p.id); });
+    });
+    markers[p.id]=m;
+  });
+
+  viewport.querySelectorAll('.side-item').forEach(item=>{
+    const p = phrases.find(x=>x.id===item.dataset.id);
+    item.addEventListener('click', ()=> goToStory(p.storyId, p.id));
+    item.addEventListener('mouseenter', ()=>{ bigMap.panTo([p.lat,p.lng]); markers[p.id].openTooltip(); });
+    item.addEventListener('mouseleave', ()=> markers[p.id].closeTooltip());
+  });
+}
+
+function goToStory(storyId, pulsePhraseId){
+  currentView='stories'; selectedStoryId=storyId;
+  navButtons.forEach(x=>x.classList.toggle('active', x.dataset.view==='stories'));
+  render();
+  if(pulsePhraseId){
+    requestAnimationFrame(()=>{
+      const el = document.querySelector(`.phrase[data-id="${pulsePhraseId}"]`);
+      if(el){ el.scrollIntoView({block:'center', behavior:'smooth'}); el.classList.add('pulse'); setTimeout(()=>el.classList.remove('pulse'),2500); }
+    });
+  }
+}
+
+/* ---------------- RENDER: STORY VIEW ---------------- */
+function renderStoryView(){
+  pageTitle.textContent = 'Stories';
+  const idx = stories.findIndex(s=>s.id===selectedStoryId);
+  const story = stories[idx];
+  const storyPhraseIds = phrases.filter(p=>p.storyId===story.id).map(p=>p.id);
+
+  viewport.innerHTML = `
+    <div class="story-wrap">
+      <div class="story-list-col">
+        <div class="story-list-scroll">
+          ${stories.map(s=>`
+            <div class="story-card ${s.id===story.id?'active':''}" data-id="${s.id}">${s.title}</div>`).join('')}
+        </div>
+      </div>
+
+      <div class="story-page">
+        <div class="story-nav">
+          <button id="prevStory" ${idx<=0?'disabled':''}>&larr; Prev</button>
+          <span class="counter">${idx+1} / ${stories.length}</span>
+          <button id="nextStory" ${idx>=stories.length-1?'disabled':''}>Next &rarr;</button>
+        </div>
+        <h3>${story.title}</h3>
+        ${story.paragraphs.map(para=>`<p>${para.map(chunk=>{
+          if(typeof chunk === 'string') return chunk;
+          const p = phrases.find(x=>x.id===chunk.phrase);
+          return `<span class="phrase" data-id="${p.id}">${p.text}</span>`;
+        }).join('')}</p>`).join('')}
+      </div>
+
+      <div class="mini-map-box">
+        <h4>Where these were heard</h4>
+        <div class="mini-map"><div id="miniLeaflet"></div></div>
+        <p class="mini-hint">Hover a phrase in the story to see where it was overheard.</p>
+      </div>
+    </div>`;
+
+  viewport.querySelectorAll('.story-card').forEach(c=>{
+    c.addEventListener('click', ()=>{ selectedStoryId=c.dataset.id; renderStoryView(); });
+  });
+  document.getElementById('prevStory')?.addEventListener('click', ()=>{ if(idx>0){ selectedStoryId=stories[idx-1].id; renderStoryView(); }});
+  document.getElementById('nextStory')?.addEventListener('click', ()=>{ if(idx<stories.length-1){ selectedStoryId=stories[idx+1].id; renderStoryView(); }});
+
+  if(miniMap){ miniMap.remove(); miniMap=null; }
+  miniMap = L.map('miniLeaflet', { zoomControl:false, scrollWheelZoom:false, dragging:true }).setView([40.735,-73.995], 12);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution:'&copy; OpenStreetMap contributors', maxZoom:19 }).addTo(miniMap);
+  setTimeout(()=> miniMap.invalidateSize(), 150);
+
+  const miniMarkers = {};
+  const bounds = [];
+  phrases.forEach(p=>{
+    const faint = !storyPhraseIds.includes(p.id);
+    const m = L.marker([p.lat,p.lng], {icon:pinDivIcon(faint)}).addTo(miniMap);
+    miniMarkers[p.id]=m;
+    if(!faint) bounds.push([p.lat,p.lng]);
+  });
+  if(bounds.length) setTimeout(()=> miniMap.fitBounds(bounds, {padding:[30,30], maxZoom:14}), 160);
+
+  viewport.querySelectorAll('.phrase').forEach(el=>{
+    const id = el.dataset.id;
+    const m = miniMarkers[id];
+    if(!m) return;
+    el.addEventListener('mouseenter', ()=>{ miniMap.panTo(m.getLatLng()); m.openTooltip(); });
+    el.addEventListener('mouseleave', ()=> m.closeTooltip());
+    el.addEventListener('click', ()=>{ el.classList.add('pulse'); setTimeout(()=>el.classList.remove('pulse'),2000); });
+    m.bindTooltip(phrases.find(x=>x.id===id).loc, {direction:'top', offset:[0,-8]});
+  });
+}
+
+/* ---------------- RENDER: ABOUT ---------------- */
+function renderAboutView(){
+  pageTitle.textContent = 'About';
+  viewport.innerHTML = `
+    <div class="about-page">
+      <p>No Headphones is a collection of phrases overheard in passing — on the street, on the train, in line somewhere — each one logged with the place and time it was heard.</p>
+      <p>Every phrase eventually finds its way into a short story. The map shows where they came from; the stories show what I did with them.</p>
+      <p>Currently all entries are from New York City. More places may get added as they're collected.</p>
+    </div>`;
+}
+
+/* ---------------- ROUTER ---------------- */
+function render(){
+  if(currentView==='map') renderMapView();
+  else if(currentView==='stories') renderStoryView();
+  else renderAboutView();
+}
+render();
+</script>
+</body>
+</html>
