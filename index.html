@@ -231,7 +231,7 @@ function renderMapView(){
   phrases.forEach(p=>{
     const m = L.marker([p.lat,p.lng], {icon:pinDivIcon()}).addTo(bigMap);
     m.bindTooltip(p.text, {direction:'top', offset:[0,-8]});
-    m.bindPopup(`${p.text}<span class="loc">${p.loc} — ${p.date}</span><br><a class="readlink" href="#" data-id="${p.id}">Read the story →</a>`);
+    m.bindPopup(`${p.text}<span class="loc">${p.loc} — ${p.date}</span>${p.storyId ? `<br><a class="readlink" href="#" data-id="${p.id}">Read the story →</a>` : ''}`);
     m.on('popupopen', ()=>{
       document.querySelector(`.leaflet-popup-content a[data-id="${p.id}"]`)
         ?.addEventListener('click', (e)=>{ e.preventDefault(); goToStory(p.storyId, p.id); });
@@ -241,7 +241,8 @@ function renderMapView(){
 
   viewport.querySelectorAll('.side-item').forEach(item=>{
     const p = phrases.find(x=>x.id===item.dataset.id);
-    item.addEventListener('click', ()=> goToStory(p.storyId, p.id));
+    if(p.storyId) item.addEventListener('click', ()=> goToStory(p.storyId, p.id));
+    else item.style.cursor = 'default';
     item.addEventListener('mouseenter', ()=>{ bigMap.panTo([p.lat,p.lng]); markers[p.id].openTooltip(); });
     item.addEventListener('mouseleave', ()=> markers[p.id].closeTooltip());
   });
