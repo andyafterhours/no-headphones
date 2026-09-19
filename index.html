@@ -59,6 +59,7 @@
   .side-item .phrase-text{color:var(--blue); font-size:15px;}
   .side-item:hover .phrase-text{color:var(--red);}
   .side-item .meta{display:block; font-size:12px; color:var(--muted); margin-top:4px;}
+  .side-item .meta.no-loc{font-style:italic;}
 
   .leaflet-popup-content-wrapper{border-radius:2px; box-shadow:0 1px 4px rgba(0,0,0,0.2);}
   .leaflet-popup-content{font-family:var(--mono); font-size:13px; margin:10px 12px; color:var(--text);}
@@ -85,6 +86,8 @@
   .story-page p{line-height:1.75; font-size:16px; margin:0 0 18px; font-weight:300;}
   .phrase{color:var(--blue); text-decoration:underline; cursor:pointer;}
   .phrase:hover, .phrase.pulse{color:var(--red);}
+
+  .empty-stories{padding:40px 0; color:var(--muted); font-family:var(--serif); font-size:17px; max-width:44ch; line-height:1.6;}
 
   .mini-map-box{position:sticky; top:20px;}
   .mini-map-box h4{font-family:var(--mono); font-size:12px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.04em; margin:0 0 12px;}
@@ -121,48 +124,40 @@
 <script>
 /* ---------------- DATA ----------------
    Real lat/lng. `region` is a light tag so a future "everywhere" filter
-   is just: phrases.filter(p => region === 'all' || p.region === region). */
+   is just: phrases.filter(p => region === 'all' || p.region === region).
+   `loc` is left blank until filled in by hand. A few entries have no
+   GPS (iOS strips it on web upload) or no text (caption wasn't
+   captured) — the map/list below are built to tolerate both. */
 
 const phrases = [
-  { id:'p1', text:"I told him, not on my lunch break", lat:40.7295, lng:-73.9965, loc:"Diner counter, W 4th St", date:"2024-03-02", storyId:'s1', region:'nyc' },
-  { id:'p2', text:"we don't have to decide tonight", lat:40.7359, lng:-74.0036, loc:"Bus stop, 14th & 8th", date:"2024-03-02", storyId:'s1', region:'nyc' },
-  { id:'p3', text:"that dog again", lat:40.7712, lng:-73.9740, loc:"Central Park, north path", date:"2024-04-11", storyId:'s2', region:'nyc' },
-  { id:'p4', text:"you can't return a haircut", lat:40.7223, lng:-73.9878, loc:"Laundromat, Ludlow St", date:"2024-04-19", storyId:'s2', region:'nyc' },
-  { id:'p5', text:"it's not a metaphor, it's just rain", lat:40.7061, lng:-73.9969, loc:"Under the Manhattan Bridge", date:"2024-05-30", storyId:'s3', region:'nyc' },
-  { id:'p6', text:"last one out locks it", lat:40.7484, lng:-73.9857, loc:"Corner store, closing time", date:"2024-05-30", storyId:'s3', region:'nyc' },
-  { id:'p7', text:"I already apologized to the plant", lat:40.7411, lng:-73.9897, loc:"Stoop, W 22nd St", date:"2024-06-14", storyId:'s4', region:'nyc' },
-  { id:'p8', text:"the light's been red for a while now", lat:40.7527, lng:-73.9772, loc:"Crosswalk, 42nd & 2nd", date:"2024-07-02", storyId:'s5', region:'nyc' },
-  { id:'p9', text:"it only floods on Tuesdays", lat:40.7180, lng:-73.9584, loc:"Sidewalk, Williamsburg", date:"2024-07-19", storyId:'s6', region:'nyc' },
+  { id:'ppoza0', text:"I had a really weird first date on 9/11 btw", lat:40.730830555555556, lng:-74.00125, loc:"", date:"2026-09-18", storyId:null, region:'nyc' },
+  { id:'ppoza1', text:"They can also live in the grass?", lat:40.65750555555555, lng:-73.96492777777777, loc:"", date:"2026-08-12", storyId:null, region:'nyc' },
+  { id:'ppoza2', text:"E47 is the gate that you need to go to", lat:40.654475, lng:-73.9640888888889, loc:"", date:"2026-08-12", storyId:null, region:'nyc' },
+  { id:'ppoza3', text:"That’s not yellow, that’s red. Oh, yellow helmet!", lat:40.65546666666666, lng:-73.96331111111111, loc:"", date:"2026-08-12", storyId:null, region:'nyc' },
+  { id:'ppoza4', text:"My editor got fired after he tried to make me resign", lat:40.68443611111111, lng:-73.94415277777779, loc:"", date:"2025-05-03", storyId:null, region:'nyc' },
+  { id:'ppoza5', text:"Everyone thinks about things differently", lat:40.709744444444446, lng:-73.94371111111111, loc:"", date:"2025-05-03", storyId:null, region:'nyc' },
+  { id:'ppoza6', text:"When I went there a few years ago they had shitty-ass clothes", lat:40.72855833333333, lng:-73.9847861111111, loc:"", date:"2025-05-03", storyId:null, region:'nyc' },
+  { id:'ppoza7', text:"I feel like everything only counts post-Covid", lat:40.73063333333334, lng:-73.99607222222222, loc:"", date:"2025-05-02", storyId:null, region:'nyc' },
+  { id:'ppoza8', text:"It’s New York City, man. They don’t care", lat:40.73464722222222, lng:-73.99208888888889, loc:"", date:"2025-05-02", storyId:null, region:'nyc' },
+  { id:'ppoza10', text:"And then last night, he asked to borrow my car for Ohio.", lat:40.725569444444446, lng:-73.95165277777778, loc:"", date:"2025-05-02", storyId:null, region:'nyc' },
+  { id:'ppoza11', text:"I said that’s your mindset. I’m not turning my back on somebody because they’re asking me for help.", lat:40.68994166666666, lng:-73.94232222222223, loc:"", date:"2025-05-02", storyId:null, region:'nyc' },
+  { id:'ppoza12', text:"Had a key to like open it", lat:40.735711111111115, lng:-73.99010555555556, loc:"", date:"2025-05-01", storyId:null, region:'nyc' },
+  { id:'ppoza13', text:"And on top of that look at how he’s treating Natalie, look at how he’s treating Ashley. The two people that were there for him for mad long.", lat:40.73653888888889, lng:-73.98923611111111, loc:"", date:"2025-05-01", storyId:null, region:'nyc' },
+  { id:'ppoza14', text:"That bitch ate everything, like every fucking thing", lat:40.737636111111115, lng:-73.98820555555555, loc:"", date:"2025-05-01", storyId:null, region:'nyc' },
+  { id:'ppoza15', text:"What do you see happening? Big picture, obviously", lat:40.73876111111111, lng:-73.98538888888889, loc:"", date:"2025-05-01", storyId:null, region:'nyc' },
+  { id:'ppoza16', text:"I think I said something weird, maybe. “What did you say?” I don’t remember.", lat:40.741619444444446, lng:-73.98339722222222, loc:"", date:"2025-05-01", storyId:null, region:'nyc' },
+  { id:'ppoza17', text:"She’s dumb, honey", lat:40.74090277777778, lng:-73.98135277777779, loc:"", date:"2025-05-01", storyId:null, region:'nyc' },
+  { id:'ppoza19', text:"Let’s say it’s like 6 units and we can fit 12 units", lat:40.74075833333333, lng:-73.98175833333333, loc:"", date:"2025-05-01", storyId:null, region:'nyc' },
+  { id:'ppoza20', text:"So I have questions for you. “Great! I hope I have answers for you”", lat:40.744975000000004, lng:-73.988975, loc:"", date:"2025-05-01", storyId:null, region:'nyc' },
+  { id:'ppoza21', text:"She lives in the city. I didn’t know that", lat:40.745736111111114, lng:-73.98831111111112, loc:"", date:"2025-05-01", storyId:null, region:'nyc' },
+  { id:'ppoza22', text:"Like I literally don’t care", lat:40.74943611111111, lng:-73.98776111111111, loc:"", date:"2025-05-01", storyId:null, region:'nyc' },
 ];
 
-const stories = [
-  { id:'s1', title:"Lunch Break", paragraphs:[
-    [ "Mara had rehearsed the sentence on the walk over, and it still came out wrong. ", {phrase:'p1'}, ", she said, sliding onto the stool like the counter itself might argue with her." ],
-    [ "He didn't answer right away. Outside, the bus hissed to a stop and someone she'd never see again leaned toward a friend and said ", {phrase:'p2'}, ", and somehow that was the sentence that undid her, not his silence." ],
-    [ "She paid for both coffees. It felt like the only decision she could still make cleanly." ]
-  ]},
-  { id:'s2', title:"Return Policy", paragraphs:[
-    [ "The dog showed up at the same bend in the path every Thursday, and every Thursday someone muttered ", {phrase:'p3'}, " like it was a grievance instead of a small, reliable joy." ],
-    [ "Priya thought about that on Friday, standing in the laundromat's fluorescent hum, listening to a stranger argue with no one in particular: ", {phrase:'p4'}, ". She almost laughed. She wanted to say the same thing about a lot of things that week." ]
-  ]},
-  { id:'s3', title:"Closing Time", paragraphs:[
-    [ "Under the bridge, someone was explaining the weather to someone else with more patience than it deserved. ", {phrase:'p5'}, ", he said, and she believed him, mostly because she wanted to." ],
-    [ "By the time she reached the corner store the lights were dimming and the clerk was already calling out, ", {phrase:'p6'}, " — and she stood there a second longer than she needed to, just to be the last one let out into the wet street." ]
-  ]},
-  { id:'s4', title:"Stoop Talk", paragraphs:[
-    [ "Someone was crouched by a fern on the stoop next door, talking to it like it owed her money. ", {phrase:'p7'}, ", she said, and stood up like the matter was closed." ]
-  ]},
-  { id:'s5', title:"Second Avenue", paragraphs:[
-    [ "The crosswalk counted down and reset twice before anyone moved. ", {phrase:'p8'}, ", a man finally said, to no one, and everyone crossed at once, like they'd been waiting for permission." ]
-  ]},
-  { id:'s6', title:"Low Ground", paragraphs:[
-    [ "The super stood ankle-deep at the curb, unbothered. ", {phrase:'p9'}, ", he said, like it was a scheduled event rather than a flaw in the block." ]
-  ]}
-];
+const stories = [];
 
 /* ---------------- STATE ---------------- */
 let currentView = 'map';
-let selectedStoryId = stories[0].id;
+let selectedStoryId = stories.length ? stories[0].id : null;
 let bigMap = null, miniMap = null;
 
 const viewport = document.getElementById('viewport');
@@ -181,6 +176,10 @@ function pinDivIcon(faint=false){
     html:`<svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="5" fill="${color}" stroke="#fff" stroke-width="1.5"/></svg>`,
     iconSize:[14,14], iconAnchor:[7,7]
   });
+}
+
+function hasCoords(p){
+  return typeof p.lat === 'number' && typeof p.lng === 'number';
 }
 
 /* ---------------- RENDER: MAP VIEW ---------------- */
@@ -207,11 +206,15 @@ function renderMapView(){
             <option value="alpha" ${phraseSort==='alpha'?'selected':''}>A–Z</option>
           </select>
         </div>
-        ${sortedPhrases().map(p=>`
+        ${sortedPhrases().map(p=>{
+          const metaText = [p.loc, p.date].filter(Boolean).join(' · ') || 'no location yet';
+          const noLoc = hasCoords(p) ? '' : ' no-loc';
+          return `
           <div class="side-item" data-id="${p.id}">
-            <span class="phrase-text">${p.text}</span>
-            <span class="meta">${p.loc} · ${p.date}</span>
-          </div>`).join('')}
+            <span class="phrase-text">${p.text || '(untitled)'}</span>
+            <span class="meta${noLoc}">${metaText}</span>
+          </div>`;
+        }).join('')}
       </div>
     </div>`;
 
@@ -229,9 +232,10 @@ function renderMapView(){
 
   const markers = {};
   phrases.forEach(p=>{
+    if(!hasCoords(p)) return; // no GPS on this one — still listed on the side, just not on the map
     const m = L.marker([p.lat,p.lng], {icon:pinDivIcon()}).addTo(bigMap);
-    m.bindTooltip(p.text, {direction:'top', offset:[0,-8]});
-    m.bindPopup(`${p.text}<span class="loc">${p.loc} — ${p.date}</span>${p.storyId ? `<br><a class="readlink" href="#" data-id="${p.id}">Read the story →</a>` : ''}`);
+    m.bindTooltip(p.text || '(untitled)', {direction:'top', offset:[0,-8]});
+    m.bindPopup(`${p.text || '(untitled)'}<span class="loc">${[p.loc, p.date].filter(Boolean).join(' — ')}</span>${p.storyId ? `<br><a class="readlink" href="#" data-id="${p.id}">Read the story →</a>` : ''}`);
     m.on('popupopen', ()=>{
       document.querySelector(`.leaflet-popup-content a[data-id="${p.id}"]`)
         ?.addEventListener('click', (e)=>{ e.preventDefault(); goToStory(p.storyId, p.id); });
@@ -243,12 +247,17 @@ function renderMapView(){
     const p = phrases.find(x=>x.id===item.dataset.id);
     if(p.storyId) item.addEventListener('click', ()=> goToStory(p.storyId, p.id));
     else item.style.cursor = 'default';
-    item.addEventListener('mouseenter', ()=>{ bigMap.panTo([p.lat,p.lng]); markers[p.id].openTooltip(); });
-    item.addEventListener('mouseleave', ()=> markers[p.id].closeTooltip());
+    item.addEventListener('mouseenter', ()=>{
+      const m = markers[p.id];
+      if(!m) return;
+      bigMap.panTo([p.lat,p.lng]); m.openTooltip();
+    });
+    item.addEventListener('mouseleave', ()=> markers[p.id]?.closeTooltip());
   });
 }
 
 function goToStory(storyId, pulsePhraseId){
+  if(!storyId) return;
   currentView='stories'; selectedStoryId=storyId;
   navButtons.forEach(x=>x.classList.toggle('active', x.dataset.view==='stories'));
   render();
@@ -263,8 +272,14 @@ function goToStory(storyId, pulsePhraseId){
 /* ---------------- RENDER: STORY VIEW ---------------- */
 function renderStoryView(){
   pageTitle.textContent = 'Stories';
+
+  if(!stories.length){
+    viewport.innerHTML = `<p class="empty-stories">No stories yet — these phrases are still waiting for one. Check back once the first is written.</p>`;
+    return;
+  }
+
   const idx = stories.findIndex(s=>s.id===selectedStoryId);
-  const story = stories[idx];
+  const story = stories[idx] || stories[0];
   const storyPhraseIds = phrases.filter(p=>p.storyId===story.id).map(p=>p.id);
 
   viewport.innerHTML = `
@@ -311,6 +326,7 @@ function renderStoryView(){
   const miniMarkers = {};
   const bounds = [];
   phrases.forEach(p=>{
+    if(!hasCoords(p)) return;
     const faint = !storyPhraseIds.includes(p.id);
     const m = L.marker([p.lat,p.lng], {icon:pinDivIcon(faint)}).addTo(miniMap);
     miniMarkers[p.id]=m;
@@ -325,7 +341,7 @@ function renderStoryView(){
     el.addEventListener('mouseenter', ()=>{ miniMap.panTo(m.getLatLng()); m.openTooltip(); });
     el.addEventListener('mouseleave', ()=> m.closeTooltip());
     el.addEventListener('click', ()=>{ el.classList.add('pulse'); setTimeout(()=>el.classList.remove('pulse'),2000); });
-    m.bindTooltip(phrases.find(x=>x.id===id).loc, {direction:'top', offset:[0,-8]});
+    m.bindTooltip(phrases.find(x=>x.id===id).loc || phrases.find(x=>x.id===id).text, {direction:'top', offset:[0,-8]});
   });
 }
 
@@ -334,9 +350,9 @@ function renderAboutView(){
   pageTitle.textContent = 'About';
   viewport.innerHTML = `
     <div class="about-page">
-      <p>No Headphones is a collection of phrases overheard in passing — on the street, on the train, in line somewhere — each one logged with the place and time it was heard.</p>
-      <p>Every phrase eventually finds its way into a short story. The map shows where they came from; the stories show what I did with them.</p>
-      <p>Currently all entries are from New York City. More places may get added as they're collected.</p>
+      <p>Over the last couple of years I’ve often made a conscious effort to resist external stimulation in moments of stillness in the outside world. I try not to pull my phone when I’m on the subway, even if it means I’m staring blankly at yet another AI ad instead. I try to resist the urge to withdraw from the world around me and <a href="https://haleynahman.substack.com/p/148-too-much-music" target="_blank" rel="noopener">soundtrack my life</a>. I try to treat walking, in particular, as an exercise in being present and observing intently.</p>
+      <p>This project began with a desire to document the snippets of conversation I overheard on my walks. I’d catch just a sentence or phrase and then wonder how the story ended. I decided to fill in the blanks myself. I use conversations from across time and place to put strangers across the city in conversation with each other.</p>
+      <p>No Headphones is also my love letter to New York, a city that is truly a joy to walk in for nosy people like me, and a city that taught me how to talk to strangers.</p>
     </div>`;
 }
 
