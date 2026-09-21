@@ -84,7 +84,7 @@
 
   .story-page h3{font-family:var(--serif); font-size:26px; font-weight:400; margin:0 0 22px;}
   .story-page p{line-height:1.75; font-size:16px; margin:0 0 18px; font-weight:300;}
-  .phrase{color:var(--blue); text-decoration:underline; cursor:pointer;}
+  .phrase{color:var(--blue); text-decoration:none; cursor:pointer;}
   .phrase:hover, .phrase.pulse{color:var(--red);}
 
   .empty-stories{padding:40px 0; color:var(--muted); font-family:var(--serif); font-size:17px; max-width:44ch; line-height:1.6;}
@@ -154,12 +154,12 @@ const phrases = [
   { id:'ppoza23', text:"'I wish you'd met me before I was like this so you would've known the person that I am.' 'We meet people when we're supposed to meet them.'", lat:40.7130272, lng:-74.0034742, loc:"", date:"2026-07-09", storyId:null, region:'nyc' },];
 
 const stories = [
-  { id:'s1', title:"The Dream Potion", paragraphs:[
+  { id:'s1', title:"9/11", paragraphs:[
     [ {phrase:'ppoza0'}, ". He told me he saw me in a dream before he met me and then asked if I minded paying for dinner." ],
-    [ {phrase:'ppoza10'}, " That’s where he gets the dream potion." ]
+    [ {phrase:'ppoza10'}, " He said that’s where his paychecks have been coming in." ]
   ]},
   { id:'s2', title:"Fired", paragraphs:[
-    [ {phrase:'ppoza4'}, ". And now he’s trying to get me to talk them out of it. After that shit he pulled, I have no idea why he thinks I would do that." ],
+    [ {phrase:'ppoza4'}, ". And now he’s trying to get me to talk them out of it. After what he pulled, I have no idea why he thinks I would do that." ],
     [ {phrase:'ppoza22'}, " that he’s gone." ]
   ]}
 ];;
@@ -307,11 +307,11 @@ function renderStoryView(){
           <button id="nextStory" ${idx>=stories.length-1?'disabled':''}>Next &rarr;</button>
         </div>
         <h3>${story.title}</h3>
-        ${story.paragraphs.map(para=>`<p>${para.map(chunk=>{
+                <p>${story.paragraphs.map(para=>para.map(chunk=>{
           if(typeof chunk === 'string') return chunk;
           const p = phrases.find(x=>x.id===chunk.phrase);
           return `<span class="phrase" data-id="${p.id}">${p.text}</span>`;
-        }).join('')}</p>`).join('')}
+        }).join('')).join(' ')}</p>
       </div>
 
       <div class="mini-map-box">
