@@ -52,10 +52,13 @@
   .map-frame{height:560px; position:relative;}
   #leafletMap{width:100%; height:100%;}
 
-  .side-list-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;}
+  .side-list{display:flex; flex-direction:column; height:560px;}
+  .side-list-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex:0 0 auto;}
   .sort-select{font-family:var(--mono); font-size:12px; color:var(--muted); border:none; background:transparent; cursor:pointer;}
   .sort-select:focus{outline:none;}
-  .side-item{padding:12px 0; cursor:pointer;}
+  .side-list-items{overflow-y:auto; flex:1; min-height:0; padding-right:6px;}
+  .side-item{padding:12px 0; cursor:pointer; border-bottom:1px solid var(--hairline);}
+  .side-item:first-child{padding-top:0;}
   .side-item .phrase-text{color:var(--blue); font-size:15px;}
   .side-item:hover .phrase-text{color:var(--red);}
   .side-item .meta{display:block; font-size:12px; color:var(--muted); margin-top:4px;}
@@ -100,7 +103,7 @@
 
   @media (max-width:900px){
     .map-wrap, .story-wrap{grid-template-columns:1fr;}
-    .side-list{padding-top:20px; margin-top:20px;}
+    .side-list{height:360px; padding-top:20px; margin-top:20px;}
     .mini-map-box{position:static;}
   }
 </style>
@@ -151,7 +154,8 @@ const phrases = [
   { id:'ppoza20', text:"So I have questions for you. “Great! I hope I have answers for you”", lat:40.744975000000004, lng:-73.988975, loc:"", date:"2025-05-01", storyId:null, region:'nyc' },
   { id:'ppoza21', text:"She lives in the city. I didn’t know that", lat:40.745736111111114, lng:-73.98831111111112, loc:"", date:"2025-05-01", storyId:null, region:'nyc' },
   { id:'ppoza22', text:"Like, I literally don’t care", lat:40.74943611111111, lng:-73.98776111111111, loc:"", date:"2025-05-01", storyId:'s2', region:'nyc' },
-  { id:'ppoza23', text:"'I wish you'd met me before I was like this so you would've known the person that I am.' 'We meet people when we're supposed to meet them.'", lat:40.7130272, lng:-74.0034742, loc:"", date:"2026-07-09", storyId:null, region:'nyc' },];
+  { id:'ppoza23', text:"'I wish you'd met me before I was like this so you would've known the person that I am.' 'We meet people when we're supposed to meet them.'", lat:40.7130272, lng:-74.0034742, loc:"", date:"2026-07-09", storyId:null, region:'nyc' },
+];
 
 const stories = [
   { id:'s1', title:"9/11", paragraphs:[
@@ -162,7 +166,7 @@ const stories = [
     [ {phrase:'ppoza4'}, ". And now he’s trying to get me to talk them out of it. After what he pulled, I have no idea why he thinks I would do that." ],
     [ {phrase:'ppoza22'}, " that he’s gone." ]
   ]}
-];;
+];
 
 /* ---------------- STATE ---------------- */
 let currentView = 'map';
@@ -215,15 +219,17 @@ function renderMapView(){
             <option value="alpha" ${phraseSort==='alpha'?'selected':''}>A–Z</option>
           </select>
         </div>
-        ${sortedPhrases().map(p=>{
-          const metaText = [p.loc, p.date].filter(Boolean).join(' · ') || 'no location yet';
-          const noLoc = hasCoords(p) ? '' : ' no-loc';
-          return `
-          <div class="side-item" data-id="${p.id}">
-            <span class="phrase-text">${p.text || '(untitled)'}</span>
-            <span class="meta${noLoc}">${metaText}</span>
-          </div>`;
-        }).join('')}
+        <div class="side-list-items">
+          ${sortedPhrases().map(p=>{
+            const metaText = [p.loc, p.date].filter(Boolean).join(' · ') || 'no location yet';
+            const noLoc = hasCoords(p) ? '' : ' no-loc';
+            return `
+            <div class="side-item" data-id="${p.id}">
+              <span class="phrase-text">${p.text || '(untitled)'}</span>
+              <span class="meta${noLoc}">${metaText}</span>
+            </div>`;
+          }).join('')}
+        </div>
       </div>
     </div>`;
 
@@ -307,7 +313,7 @@ function renderStoryView(){
           <button id="nextStory" ${idx>=stories.length-1?'disabled':''}>Next &rarr;</button>
         </div>
         <h3>${story.title}</h3>
-                <p>${story.paragraphs.map(para=>para.map(chunk=>{
+        <p>${story.paragraphs.map(para=>para.map(chunk=>{
           if(typeof chunk === 'string') return chunk;
           const p = phrases.find(x=>x.id===chunk.phrase);
           return `<span class="phrase" data-id="${p.id}">${p.text}</span>`;
