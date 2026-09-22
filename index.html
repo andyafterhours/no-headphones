@@ -160,7 +160,7 @@ const phrases = [
 
 const stories = [
   { id:'s1', title:"9/11", paragraphs:[
-    [ {phrase:'ppoza0'}, ". He told me he saw me in a dream before he met me and then asked if I minded paying for dinner." ],
+    [ {phrase:'ppoza0'}, ". He told me he'd met me in a dream and then asked if I minded paying for dinner." ],
     [ {phrase:'ppoza10'}, " He said that’s where his paychecks have been coming in the mail." ]
   ]},
   { id:'s2', title:"Fired", paragraphs:[
@@ -180,7 +180,7 @@ let selectedStoryId = stories.length ? stories[0].id : null;
 let bigMap = null, miniMap = null;
 
 const viewport = document.getElementById('viewport');
-const HEADLINE = `<p class="headline">I document <a href="#map" class="phrase-link">what I overhear</a> when I'm walking around New York City and then <a href="#stories" class="phrase-link">put people from across time and space in conversation</a> with each other.</p>`;
+const HEADLINE = `<p class="headline">I document <a href="#map" class="phrase-link">what I overhear</a> when I'm walking around New York City and then put people from across time and space <a href="#stories" class="phrase-link">in conversation</a> with each other.</p>`;
 const navButtons = document.querySelectorAll('#mainNav button');
 navButtons.forEach(b=>b.addEventListener('click', ()=>{
   location.hash = b.dataset.view;
