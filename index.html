@@ -4,10 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>No Headphones</title>
-<link rel="icon" href="favicon.ico" sizes="any">
-<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Source+Code+Pro:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
@@ -38,8 +34,7 @@
     display:flex; align-items:baseline; justify-content:space-between;
     padding:24px 40px;
   }
-  header.site .brand{font-family:var(--serif); font-size:20px; font-weight:400; display:flex; align-items:center; gap:10px;}
-  header.site .brand img{height:26px; width:26px; display:block; position:relative; top:1px;}
+  header.site .brand{font-family:var(--serif); font-size:20px; font-weight:400;}
   nav.tabs{display:flex; gap:24px;}
   nav.tabs button{
     font-family:var(--serif); font-size:15px; font-weight:400;
@@ -118,7 +113,7 @@
 <body>
 
 <header class="site">
-  <div class="brand"><img src="no-headphones-logo-animated.gif" alt="">No Headphones</div>
+  <div class="brand">No Headphones</div>
   <nav class="tabs" id="mainNav">
     <button data-view="map" class="active">Map</button>
     <button data-view="stories">Stories</button>
