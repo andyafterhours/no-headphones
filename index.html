@@ -45,7 +45,9 @@
 
   main{max-width:1180px; margin:0 auto; padding:10px 40px 80px;}
 
-  h2.page-title{font-family:var(--serif); font-size:24px; font-weight:400; margin:0 0 22px;}
+  .headline{font-family:var(--serif); font-size:24px; font-weight:400; line-height:1.45; margin:0 0 22px; max-width:640px;}
+  .phrase-link{color:var(--blue); text-decoration:none;}
+  .phrase-link:hover{color:var(--red);}
 
   /* ---------- MAP VIEW ---------- */
   .map-wrap{display:grid; grid-template-columns:1fr 280px; gap:36px; align-items:start;}
@@ -120,7 +122,6 @@
 </header>
 
 <main>
-  <h2 class="page-title" id="pageTitle">Map</h2>
   <div id="viewport"></div>
 </main>
 
@@ -159,7 +160,7 @@ const phrases = [
 
 const stories = [
   { id:'s1', title:"9/11", paragraphs:[
-    [ {phrase:'ppoza0'}, ". He told me he'd met me in a dream and then asked if I minded paying for dinner." ],
+    [ {phrase:'ppoza0'}, ". He told me he saw me in a dream before he met me and then asked if I minded paying for dinner." ],
     [ {phrase:'ppoza10'}, " He said that’s where his paychecks have been coming in the mail." ]
   ]},
   { id:'s2', title:"Fired", paragraphs:[
@@ -169,18 +170,27 @@ const stories = [
 ];
 
 /* ---------------- STATE ---------------- */
-let currentView = 'map';
+const VALID_VIEWS = ['map','stories','about'];
+function viewFromHash(){
+  const v = location.hash.replace('#','');
+  return VALID_VIEWS.includes(v) ? v : 'map';
+}
+let currentView = viewFromHash();
 let selectedStoryId = stories.length ? stories[0].id : null;
 let bigMap = null, miniMap = null;
 
 const viewport = document.getElementById('viewport');
-const pageTitle = document.getElementById('pageTitle');
+const HEADLINE = `<p class="headline">I document <a href="#map" class="phrase-link">what I overhear</a> when I'm walking around New York City and then <a href="#stories" class="phrase-link">put people from across time and space in conversation</a> with each other.</p>`;
 const navButtons = document.querySelectorAll('#mainNav button');
 navButtons.forEach(b=>b.addEventListener('click', ()=>{
-  currentView = b.dataset.view;
-  navButtons.forEach(x=>x.classList.toggle('active', x===b));
-  render();
+  location.hash = b.dataset.view;
 }));
+
+window.addEventListener('hashchange', ()=>{
+  currentView = viewFromHash();
+  navButtons.forEach(x=>x.classList.toggle('active', x.dataset.view===currentView));
+  render();
+});
 
 function pinDivIcon(faint=false){
   const color = faint ? '#cfcfcf' : '#1155CC';
@@ -207,8 +217,8 @@ function sortedPhrases(){
 }
 
 function renderMapView(){
-  pageTitle.textContent = 'Map';
   viewport.innerHTML = `
+    ${HEADLINE}
     <div class="map-wrap">
       <div class="map-frame"><div id="leafletMap"></div></div>
       <div class="side-list">
@@ -273,9 +283,13 @@ function renderMapView(){
 
 function goToStory(storyId, pulsePhraseId){
   if(!storyId) return;
-  currentView='stories'; selectedStoryId=storyId;
-  navButtons.forEach(x=>x.classList.toggle('active', x.dataset.view==='stories'));
-  render();
+  selectedStoryId=storyId;
+  if(viewFromHash()!=='stories'){
+    location.hash = 'stories'; // hashchange listener sets currentView, updates nav, and calls render()
+  } else {
+    currentView='stories';
+    render();
+  }
   if(pulsePhraseId){
     requestAnimationFrame(()=>{
       const el = document.querySelector(`.phrase[data-id="${pulsePhraseId}"]`);
@@ -286,10 +300,8 @@ function goToStory(storyId, pulsePhraseId){
 
 /* ---------------- RENDER: STORY VIEW ---------------- */
 function renderStoryView(){
-  pageTitle.textContent = 'Stories';
-
   if(!stories.length){
-    viewport.innerHTML = `<p class="empty-stories">No stories yet. Check back once the first is written.</p>`;
+    viewport.innerHTML = `${HEADLINE}<p class="empty-stories">No stories yet. Check back once the first is written.</p>`;
     return;
   }
 
@@ -298,6 +310,7 @@ function renderStoryView(){
   const storyPhraseIds = phrases.filter(p=>p.storyId===story.id).map(p=>p.id);
 
   viewport.innerHTML = `
+    ${HEADLINE}
     <div class="story-wrap">
       <div class="story-list-col">
         <div class="story-list-scroll">
@@ -321,6 +334,7 @@ function renderStoryView(){
       </div>
 
       <div class="mini-map-box">
+        <h4>Where these were heard</h4>
         <div class="mini-map"><div id="miniLeaflet"></div></div>
         <p class="mini-hint">Hover a phrase in the story to see where it was overheard.</p>
       </div>
@@ -361,13 +375,12 @@ function renderStoryView(){
 
 /* ---------------- RENDER: ABOUT ---------------- */
 function renderAboutView(){
-  pageTitle.textContent = 'About';
   viewport.innerHTML = `
     <div class="about-page">
-      <p>When I'm outside, walking or waiting around, it can be tempting to withdraw from the world around me. I check my phone to distract myself, or put my earphones in and <a href="https://haleynahman.substack.com/p/148-too-much-music" target="_blank" rel="noopener">soundtrack my life.</a></p>
-      <p>But if I resist those impulses, I'm always rewarded by the things I notice. I'm much more attuned to the conversations people are having around me, and in a weird way, feel more connected to them.</p>
-      <p>Often I'm only around them long enough to catch a snippet. It's almost more fun that way, to wonder what happened next. This project is how I'm filling in the blanks and putting people from across time and place in conversation with each other (in sometimes absurdist ways).</p>
-      <p>It's an exercise in being present and observing intently. It's also my love letter to New York, a city that makes it easy to talk to strangers, and one that is truly a joy to live in for nosy people like me.</p>
+      <p>When I'm outside, walking or waiting around, it can be tempting to withdraw from the world around me. I check my phone or put my earphones in and <a href="https://haleynahman.substack.com/p/148-too-much-music" target="_blank" rel="noopener">soundtrack my life.</a></p>
+      <p>If I resist that impulse, I'm always rewarded by the things I notice. I'm much more attuned to the conversations people are having around me, and in a weird way, feel more connected to them.</p>
+      <p>Often I'm only around them long enough to catch a snippet. It's almost more fun that way, to wonder what happened next. This project is how I'm filling in the blanks, and in doing so, putting people from across time and place in conversation with each other in sometimes absurdist ways.</p>
+      <p>It's an exercise in being present and observing intently. It's also my love letter to New York, a city that taught me how to talk to strangers, and one that is truly a joy to live in for nosy people like me.</p>
     </div>`;
 }
 
@@ -377,6 +390,8 @@ function render(){
   else if(currentView==='stories') renderStoryView();
   else renderAboutView();
 }
+navButtons.forEach(x=>x.classList.toggle('active', x.dataset.view===currentView));
+if(!location.hash) location.hash = currentView;
 render();
 </script>
 </body>
