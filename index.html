@@ -206,6 +206,7 @@ function hasCoords(p){
 }
 
 /* ---------------- RENDER: MAP VIEW ---------------- */
+const SHOW_DATES = false;
 let phraseSort = 'date-desc';
 
 function sortedPhrases(){
@@ -231,7 +232,7 @@ function renderMapView(){
         </div>
         <div class="side-list-items">
           ${sortedPhrases().map(p=>{
-            const metaText = [p.loc, p.date].filter(Boolean).join(' · ') || 'no location yet';
+            const metaText = [p.loc, SHOW_DATES ? p.date : null].filter(Boolean).join(' · ') || 'no location yet';
             const noLoc = hasCoords(p) ? '' : ' no-loc';
             return `
             <div class="side-item" data-id="${p.id}">
